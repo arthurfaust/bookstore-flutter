@@ -167,6 +167,26 @@ class CatalogoPage extends StatelessWidget {
           );
         }).toList(),
       ),
+    
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+
+          child: FilledButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TransformacoesPage(),
+                ),
+              );
+            },
+
+            icon: const Icon(Icons.transform),
+            label: const Text('Transformações'),
+          ),
+        ),
+     ),
     );
   }
 }
@@ -260,6 +280,165 @@ class DetalhesPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class TransformacoesPage extends StatelessWidget {
+  const TransformacoesPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+
+    // 1. Transformações numéricas
+    final List<int> numeros = [1, 2, 3, 4, 5];
+
+    final List<String> numerosString = numeros
+        .map((numero) => numero.toString())
+        .toList();
+
+    final List<int> numerosDobrados = numeros
+        .map((numero) => numero * 2)
+        .toList();
+
+    // 2. Palavras transformadas em widgets
+    final List<String> palavras = [
+      'Flutter',
+      'é',
+      'incrível',
+    ];
+
+    final List<Widget> textos = palavras.map((palavra) {
+      return Text(
+        palavra,
+        style: const TextStyle(fontSize: 18),
+      );
+    }).toList();
+
+    // 3. Nomes transformados em botões
+    final List<String> nomes = [
+      'Ana',
+      'Bruno',
+      'Carla',
+    ];
+
+    final List<Widget> botoes = nomes.map((nome) {
+      return FilledButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Nome selecionado: $nome'),
+            ),
+          );
+        },
+        child: Text(nome),
+      );
+    }).toList();
+
+    // Interface da página
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Transformações'),
+      ),
+
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+
+        children: [
+
+          // Seção 1: Números
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+
+                children: [
+                  Text(
+                    'Transformação de números',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Text('Lista original: $numeros'),
+
+                  const SizedBox(height: 8),
+
+                  const Text('Lista de strings (List<String>):'),
+
+                  Text(
+                    '[${numerosString.map((s) => '"$s"').join(', ')}]',
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text('Multiplicados por 2: $numerosDobrados'),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Seção 2: Palavras
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+
+                children: [
+                  Text(
+                    'Palavras em widgets',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    children: textos,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Seção 3: Botões
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+
+                children: [
+                  Text(
+                    'Nomes em botões',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: botoes,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
