@@ -147,11 +147,11 @@ class CatalogoPage extends StatelessWidget {
 
                         FilledButton(
                           onPressed: () {
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Selecionado: ${produto.nome}',
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetalhesPage(
+                                  produto: produto,
                                 ),
                               ),
                             );
@@ -166,6 +166,100 @@ class CatalogoPage extends StatelessWidget {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+class DetalhesPage extends StatelessWidget {
+  final Produto produto;
+
+  const DetalhesPage({
+    super.key,
+    required this.produto,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detalhes do Produto'),
+      ),
+
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+
+          children: [
+            // Ícone do produto
+            const Center(
+              child: Icon(
+                Icons.menu_book,
+                size: 100,
+                color: Colors.indigo,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Nome do produto
+            Text(
+              produto.nome,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Descrição
+            Text(
+              produto.descricao,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Preço
+            Text(
+              'R\$ ${produto.preco.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 22,
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Estoque disponível
+            Text(
+              'Quantidade disponível: '
+              '${produto.quantidadeDisponivel}',
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // Botão para retornar
+            Center(
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Voltar ao catálogo'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
