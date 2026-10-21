@@ -4,8 +4,57 @@ void main() {
   runApp(const BookStoreApp());
 }
 
-class BookStoreApp extends StatelessWidget {
+void abrirHistorico(
+  BuildContext context,
+  ValueNotifier<List<AppLifecycleState>> historico,
+) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => HistoricoPage(
+        historico: historico,
+      ),
+    ),
+  );
+}
+
+class BookStoreApp extends StatefulWidget {
   const BookStoreApp({super.key});
+
+  @override
+  State<BookStoreApp> createState() => _BookStoreAppState();
+}
+
+class _BookStoreAppState extends State<BookStoreApp> {
+  late final AppLifecycleListener _listener;
+
+  // Histórico compartilhado entre as telas.
+  final ValueNotifier<List<AppLifecycleState>> historico =
+      ValueNotifier<List<AppLifecycleState>>([]);
+
+  @override
+  void initState() {
+    super.initState();
+
+    _listener = AppLifecycleListener(
+      onStateChange: (estado) {
+        debugPrint('Ciclo de vida: ${estado.name}');
+
+        historico.value = [
+          ...historico.value,
+          estado,
+        ];
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _listener.dispose();
+    historico.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +67,9 @@ class BookStoreApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const CatalogoPage(),
+      home: CatalogoPage(
+        historico: historico,
+      ),
     );
   }
 }
@@ -62,13 +113,29 @@ const List<Produto> produtos = [
 ];
 
 class CatalogoPage extends StatelessWidget {
-  const CatalogoPage({super.key});
+  final ValueNotifier<List<AppLifecycleState>> historico;
+
+  const CatalogoPage({
+    super.key,
+    required this.historico,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('BookStore'),
+      
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Histórico do ciclo de vida',
+      
+            onPressed: () {
+              abrirHistorico(context, historico);
+            },
+          ),
+        ],
       ),
 
       body: ListView(
@@ -152,6 +219,7 @@ class CatalogoPage extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => DetalhesPage(
                                   produto: produto,
+                                  historico: historico,
                                 ),
                               ),
                             );
@@ -177,7 +245,9 @@ class CatalogoPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const TransformacoesPage(),
+                  builder: (context) => TransformacoesPage(
+                    historico: historico,
+                  ),
                 ),
               );
             },
@@ -193,10 +263,12 @@ class CatalogoPage extends StatelessWidget {
 
 class DetalhesPage extends StatelessWidget {
   final Produto produto;
+  final ValueNotifier<List<AppLifecycleState>> historico;
 
   const DetalhesPage({
     super.key,
     required this.produto,
+    required this.historico,
   });
 
   @override
@@ -204,6 +276,17 @@ class DetalhesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalhes do Produto'),
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Histórico do ciclo de vida',
+
+            onPressed: () {
+              abrirHistorico(context, historico);
+            },
+          ),
+        ],
       ),
 
       body: Padding(
@@ -286,7 +369,12 @@ class DetalhesPage extends StatelessWidget {
 }
 
 class TransformacoesPage extends StatelessWidget {
-  const TransformacoesPage({super.key});
+  final ValueNotifier<List<AppLifecycleState>> historico;
+
+  const TransformacoesPage({
+    super.key,
+    required this.historico,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -342,6 +430,17 @@ class TransformacoesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transformações'),
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Histórico do ciclo de vida',
+
+            onPressed: () {
+              abrirHistorico(context, historico);
+            },
+          ),
+        ],
       ),
 
       body: ListView(
@@ -439,6 +538,93 @@ class TransformacoesPage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class HistoricoPage extends StatelessWidget {
+  final ValueNotifier<List<AppLifecycleState>> historico;
+
+  const HistoricoPage({
+    super.key,
+    required this.historico,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Histórico do ciclo de vida'),
+      ),
+
+      body: ValueListenableBuilder<List<AppLifecycleState>>(
+        valueListenable: historico,
+
+        builder: (context, estados, child) {
+          // Consulta o estado atual real do Flutter.
+          final estadoAtual =
+              WidgetsBinding.instance.lifecycleState;
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+
+            children: [
+              // Estado atual
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.phone_android),
+                  title: const Text('Estado atual (consulta)'),
+                  subtitle: Text(
+                    estadoAtual?.name ?? 'Indisponível',
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Text(
+                'Eventos recebidos',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+
+              const SizedBox(height: 12),
+
+              // Mensagem inicial
+              if (estados.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'Nenhuma mudança registrada ainda. '
+                      'Pressione Home e retorne ao aplicativo.',
+                    ),
+                  ),
+                ),
+
+              // Histórico em ordem cronológica
+              ...estados.asMap().entries.map((registro) {
+                return Card(
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Text(
+                        '${registro.key + 1}',
+                      ),
+                    ),
+
+                    title: Text(
+                      registro.value.name,
+                    ),
+
+                    subtitle: const Text(
+                      'Evento do ciclo de vida',
+                    ),
+                  ),
+                );
+              }),
+            ],
+          );
+        },
       ),
     );
   }
